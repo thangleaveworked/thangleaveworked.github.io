@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESP32 MQTT Control</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+</head>
+<body>
+<h2>ESP32 MQTT Control</h2>
+<div>
+  <p>Temperature: <span id="temperature"></span> °C</p>
+  <p>Humidity: <span id="humidity"></span> %</p>
+</div>
+<div>
+  <button onclick="sendCommand('1')">Red</button>
+  <button onclick="sendCommand('2')">Green</button>
+  <button onclick="sendCommand('3')">Blue</button>
+  <button onclick="sendCommand('4')">Random Color</button>
+  
+  <button onclick="sendCommand('0')">Turn Off</button>
+</div>
+
+<script>
+// MQTT broker configuration
+var mqttServer = "broker.hivemq.com";
+var mqttPort = 8000;
+var mqttClient = new Paho.MQTT.Client(mqttServer, mqttPort, "");
+
+// MQTT topic for temperature and humidity data
+var temperatureTopic = "old/nhietdo";
+var humidityTopic = "old/doam";
+
+// Connect to MQTT broker
+mqttClient.connect({ onSuccess: onConnect });
+
+function onConnect() {
+  console.log("Connected to MQTT broker");
+  // Subscribe to topics
+  mqttClient.subscribe(temperatureTopic);
+  mqttClient.subscribe(humidityTopic);
+}
+
+// Callback function for receiving MQTT messages
+mqttClient.onMessageArrived = function(message) {
+  if (message.destinationName === temperatureTopic) {
+    document.getElementById("temperature").innerText = message.payloadString;
+  } else if (message.destinationName === humidityTopic) {
+    document.getElementById("humidity").innerText = message.payloadString;
+  }
+};
+
+// Function to send MQTT message to control the light
+function sendCommand(command) {
+  mqttClient.send("old/den", command);
+}
+</script>
+</body>
+</html>
